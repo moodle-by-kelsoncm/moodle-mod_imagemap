@@ -45,17 +45,7 @@ $PAGE->set_context($context);
 
 // Handle actions.
 if ($action === 'delete' && $areaid && confirm_sesskey()) {
-    // Delete related lines first.
-    $dbmancheck = $DB->get_manager();
-    $linetablecheck = new xmldb_table('imagemap_line');
-    if ($dbmancheck->table_exists($linetablecheck)) {
-        $DB->delete_records_select(
-            'imagemap_line',
-            'from_areaid = :from OR to_areaid = :to',
-            ['from' => $areaid, 'to' => $areaid]
-        );
-    }
-    $DB->delete_records('imagemap_area', ['id' => $areaid, 'imagemapid' => $imagemap->id]);
+    imagemap_delete_area($imagemap, $areaid);
     redirect(
         new moodle_url('/mod/imagemap/areas.php', ['id' => $cm->id]),
         get_string('deletearea', 'imagemap'),
@@ -125,54 +115,8 @@ if ($imagefile) {
     }
 
     // Fetch CSS examples for active and inactive filters.
-    $activeexamples = $DB->get_records('imagemap_css_examples', ['type' => 'active'], 'sortorder ASC, name ASC');
-    $inactiveexamples = $DB->get_records('imagemap_css_examples', ['type' => 'inactive'], 'sortorder ASC, name ASC');
-
-    // If no examples exist, create default ones (same as admin.php).
-    if (empty($activeexamples)) {
-        $testexamples = [
-            ['type' => 'active', 'name' => 'No Effect', 'css_text' => 'none', 'sortorder' => 0],
-            ['type' => 'active', 'name' => 'Grayscale', 'css_text' => 'filter: grayscale(100%)', 'sortorder' => 1],
-            ['type' => 'active', 'name' => 'Opacity 50%', 'css_text' => 'filter: opacity(0.5)', 'sortorder' => 2],
-            ['type' => 'active', 'name' => 'Blur', 'css_text' => 'filter: blur(2px)', 'sortorder' => 3],
-        ];
-
-        foreach ($testexamples as $example) {
-            $record = new stdClass();
-            $record->type = $example['type'];
-            $record->name = $example['name'];
-            $record->css_text = $example['css_text'];
-            $record->sortorder = $example['sortorder'];
-            $record->timecreated = time();
-            $record->timemodified = time();
-            $DB->insert_record('imagemap_css_examples', $record);
-        }
-
-        // Reload examples.
-        $activeexamples = $DB->get_records('imagemap_css_examples', ['type' => 'active'], 'sortorder ASC, name ASC');
-    }
-
-    if (empty($inactiveexamples)) {
-        $testexamples = [
-            ['type' => 'inactive', 'name' => 'No Effect', 'css_text' => 'none', 'sortorder' => 0],
-            ['type' => 'inactive', 'name' => 'Grayed Out', 'css_text' => 'filter: grayscale(100%);', 'sortorder' => 1],
-            ['type' => 'inactive', 'name' => 'Blurred', 'css_text' => 'filter: blur(3px);', 'sortorder' => 2],
-        ];
-
-        foreach ($testexamples as $example) {
-            $record = new stdClass();
-            $record->type = $example['type'];
-            $record->name = $example['name'];
-            $record->css_text = $example['css_text'];
-            $record->sortorder = $example['sortorder'];
-            $record->timecreated = time();
-            $record->timemodified = time();
-            $DB->insert_record('imagemap_css_examples', $record);
-        }
-
-        // Reload examples.
-        $inactiveexamples = $DB->get_records('imagemap_css_examples', ['type' => 'inactive'], 'sortorder ASC, name ASC');
-    }
+    $activeexamples = \mod_imagemap\local\css_examples::get_by_type('active');
+    $inactiveexamples = \mod_imagemap\local\css_examples::get_by_type('inactive');
 
     $activeexamplestemplate = [];
     $inactiveexamplestemplate = [];
@@ -280,30 +224,25 @@ if ($imagefile) {
 
     // Load lines between areas.
     $linesdata = [];
-    if ($dbman = $DB->get_manager()) {
-        $table = new xmldb_table('imagemap_line');
-        if ($dbman->table_exists($table)) {
-            $lines = $DB->get_records('imagemap_line', ['imagemapid' => $imagemap->id]);
-            foreach ($lines as $line) {
-                $linesdata[] = [
-                    'id' => (int)$line->id,
-                    'from_areaid' => (int)$line->from_areaid,
-                    'to_areaid' => (int)$line->to_areaid,
-                ];
-            }
-            // Count lines per area.
-            foreach ($areasfortemplate as &$aft) {
-                $count = 0;
-                foreach ($linesdata as $ld) {
-                    if ($ld['from_areaid'] == $aft['id'] || $ld['to_areaid'] == $aft['id']) {
-                        $count++;
-                    }
-                }
-                $aft['lines_count'] = $count;
-            }
-            unset($aft);
-        }
+    $lines = $DB->get_records('imagemap_line', ['imagemapid' => $imagemap->id]);
+    foreach ($lines as $line) {
+        $linesdata[] = [
+            'id' => (int)$line->id,
+            'from_areaid' => (int)$line->from_areaid,
+            'to_areaid' => (int)$line->to_areaid,
+        ];
     }
+    // Count lines per area.
+    foreach ($areasfortemplate as &$aft) {
+        $count = 0;
+        foreach ($linesdata as $ld) {
+            if ($ld['from_areaid'] == $aft['id'] || $ld['to_areaid'] == $aft['id']) {
+                $count++;
+            }
+        }
+        $aft['lines_count'] = $count;
+    }
+    unset($aft);
 
     // Prepare CSS examples modal.
     $activeexamplesmodal = [];

@@ -47,9 +47,6 @@ class restore_imagemap_activity_structure_step extends restore_activity_structur
         // Learn about lines.
         $paths[] = new restore_path_element('imagemap_line', '/activity/imagemap/lines/line');
 
-        // Learn about CSS examples.
-        $paths[] = new restore_path_element('imagemap_css_example', '/activity/imagemap/css_examples/css_example');
-
         // Return the paths wrapped into standard activity structure.
         return $this->prepare_activity_structure($paths);
     }
@@ -109,31 +106,6 @@ class restore_imagemap_activity_structure_step extends restore_activity_structur
         if ($data->from_areaid && $data->to_areaid) {
             $newitemid = $DB->insert_record('imagemap_line', $data);
             $this->set_mapping('imagemap_line', $data->id, $newitemid);
-        }
-    }
-
-    /**
-     * Process the imagemap_css_example element
-     *
-     * @param array $data The data from the backup file
-     */
-    protected function process_imagemap_css_example($data) {
-        global $DB;
-
-        $data = (object)$data;
-        $data->css_text = \mod_imagemap\local\css_rules::clean($data->css_text ?? null);
-
-        // CSS examples are global, but we restore them to ensure availability.
-        // Check if this example already exists to avoid duplicates.
-        $existing = $DB->get_record('imagemap_css_examples', [
-            'type' => $data->type,
-            'name' => $data->name,
-        ]);
-
-        if (!$existing) {
-            // If it doesn't exist, insert it.
-            $newitemid = $DB->insert_record('imagemap_css_examples', $data);
-            $this->set_mapping('imagemap_css_example', $data->id, $newitemid);
         }
     }
 

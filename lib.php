@@ -108,16 +108,34 @@ function imagemap_delete_instance($id) {
     $DB->delete_records('imagemap_area', ['imagemapid' => $imagemap->id]);
 
     // Delete all connection lines.
-    $dbman = $DB->get_manager();
-    $linetable = new xmldb_table('imagemap_line');
-    if ($dbman->table_exists($linetable)) {
-        $DB->delete_records('imagemap_line', ['imagemapid' => $imagemap->id]);
-    }
+    $DB->delete_records('imagemap_line', ['imagemapid' => $imagemap->id]);
 
     // Delete the instance.
     $DB->delete_records('imagemap', ['id' => $imagemap->id]);
 
     return true;
+}
+
+/**
+ * Deletes an area of an image map and the connection lines that use it.
+ *
+ * The area must belong to the given image map; otherwise nothing is deleted.
+ *
+ * @param stdClass $imagemap Image map instance record.
+ * @param int $areaid Area id.
+ * @throws dml_missing_record_exception If the area does not belong to the image map.
+ */
+function imagemap_delete_area(stdClass $imagemap, int $areaid): void {
+    global $DB;
+
+    $area = $DB->get_record('imagemap_area', ['id' => $areaid, 'imagemapid' => $imagemap->id], 'id', MUST_EXIST);
+
+    $DB->delete_records_select(
+        'imagemap_line',
+        'imagemapid = :imagemapid AND (from_areaid = :fromareaid OR to_areaid = :toareaid)',
+        ['imagemapid' => $imagemap->id, 'fromareaid' => $area->id, 'toareaid' => $area->id]
+    );
+    $DB->delete_records('imagemap_area', ['id' => $area->id, 'imagemapid' => $imagemap->id]);
 }
 
 /**
@@ -524,16 +542,12 @@ function imagemap_prepare_display_data($imagemap, $course, $context, $cminfo) {
     }
 
     // Load connection lines.
-    $dbman = $DB->get_manager();
-    $linetable = new xmldb_table('imagemap_line');
-    if ($dbman->table_exists($linetable)) {
-        $lines = $DB->get_records('imagemap_line', ['imagemapid' => $imagemap->id]);
-        foreach ($lines as $line) {
-            $linesviewdata[] = [
-                'from_areaid' => (int)$line->from_areaid,
-                'to_areaid' => (int)$line->to_areaid,
-            ];
-        }
+    $lines = $DB->get_records('imagemap_line', ['imagemapid' => $imagemap->id]);
+    foreach ($lines as $line) {
+        $linesviewdata[] = [
+            'from_areaid' => (int)$line->from_areaid,
+            'to_areaid' => (int)$line->to_areaid,
+        ];
     }
 
     return [

@@ -2,6 +2,19 @@
 
 All notable changes to the Image Map module will be documented in this file.
 
+## 1.3.2 - 2026-11-27
+
+Changes requested by the Moodle Marketplace review (CONTRIB-10391).
+
+### Fixed
+- Deleting an area checks first that it belongs to the image map, and only removes lines of that image map; before, any area id deleted the connection lines of other image maps (#36).
+- The activity list page (`index.php`) no longer fails with a coding error: the instance list viewed event keeps the `init()` of its parent (#37).
+
+### Changed
+- CSS examples are site settings and no longer travel in backups; a restore never adds examples to the site (#38). Older backups that contain them still restore, and the examples in them are ignored.
+- The default CSS examples are created once, on install and upgrade, with English names (`\mod_imagemap\local\css_examples`); the area editor and the administration page no longer create them on page requests. The upgrade renames the old Portuguese default names (#39).
+- The view page, the area editor and `imagemap_delete_instance()` no longer check whether the `imagemap_line` table exists on every request (#40).
+
 ## 1.3.1 - 2026-11-18
 
 ### Changed

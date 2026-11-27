@@ -11,6 +11,8 @@ Acesse *Administração do site > Plugins > Módulos de atividade > Image Map* e
 * **CSS ativo** e **CSS inativo**: o estilo de uma área cujo destino está ou não disponível.
 * **CSS ativo (hover)** e **CSS inativo (hover)**: o estilo enquanto o ponteiro está sobre a área.
 
+A instalação cria um conjunto de exemplos padrão de cada tipo (por exemplo *No effect*, *Grayscale* e *Blue border*); a atualização a partir da 1.3.1 ou anterior troca os nomes antigos em português pelos nomes em inglês e cria os padrões dos tipos que não têm nenhum exemplo. Depois disso, a lista só muda pelo administrador.
+
 Cada cartão mostra uma prévia do CSS sobre fundo escuro e claro. Os exemplos podem ser exportados para um arquivo JSON e importados em outro site; um exemplo importado com o mesmo tipo e nome substitui o existente.
 
 CSS permitido

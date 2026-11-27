@@ -56,19 +56,11 @@ class backup_imagemap_activity_structure_step extends backup_activity_structure_
             'imagemapid', 'from_areaid', 'to_areaid', 'timecreated',
         ]);
 
-        $cssexamples = new backup_nested_element('css_examples');
-
-        $cssexample = new backup_nested_element('css_example', ['id'], [
-            'type', 'name', 'css_text', 'sortorder', 'timecreated', 'timemodified',
-        ]);
-
         // Build the tree.
         $imagemap->add_child($areas);
         $areas->add_child($area);
         $imagemap->add_child($lines);
         $lines->add_child($line);
-        $imagemap->add_child($cssexamples);
-        $cssexamples->add_child($cssexample);
 
         // Define sources.
         $imagemap->set_source_table('imagemap', ['id' => backup::VAR_ACTIVITYID]);
@@ -76,9 +68,6 @@ class backup_imagemap_activity_structure_step extends backup_activity_structure_
         $area->set_source_table('imagemap_area', ['imagemapid' => backup::VAR_PARENTID]);
 
         $line->set_source_table('imagemap_line', ['imagemapid' => backup::VAR_ACTIVITYID]);
-
-        // CSS examples are global, but included in backup for portability.
-        $cssexample->set_source_table('imagemap_css_examples', []);
 
         // Define file annotations.
         $imagemap->annotate_files('mod_imagemap', 'intro', null);
