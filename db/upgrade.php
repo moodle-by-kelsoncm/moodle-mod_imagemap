@@ -77,124 +77,7 @@ function xmldb_imagemap_upgrade($oldversion) {
         // Conditionally launch create table for imagemap_css_examples.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
-
-            // Add default examples.
-            $examples = [
-                // Active examples.
-                ['type' => 'active', 'name' => 'Sem Efeito', 'css_text' => 'none', 'sortorder' => 0],
-                [
-                    'type' => 'active',
-                    'name' => 'Bright Glow',
-                    'css_text' => 'filter: brightness(1.2) drop-shadow(0 0 10px rgba(255,255,0,0.8));',
-                    'sortorder' => 1,
-                ],
-                [
-                    'type' => 'active',
-                    'name' => 'Green Border',
-                    'css_text' => 'border: 3px solid #00ff00; background: rgba(0,255,0,0.2);',
-                    'sortorder' => 2,
-                ],
-                [
-                    'type' => 'active',
-                    'name' => 'Golden Glow',
-                    'css_text' => 'box-shadow: 0 0 20px rgba(255,215,0,0.8);',
-                    'sortorder' => 3,
-                ],
-                [
-                    'type' => 'active',
-                    'name' => 'Blue Highlight',
-                    'css_text' => 'filter: brightness(1.1) saturate(1.3) hue-rotate(200deg);',
-                    'sortorder' => 4,
-                ],
-                [
-                    'type' => 'active',
-                    'name' => 'Rainbow Border',
-                    'css_text' => 'border: 4px solid; border-image: linear-gradient(45deg, red, orange, '
-                        . 'yellow, green, blue, indigo, violet) 1;',
-                    'sortorder' => 5,
-                ],
-                [
-                    'type' => 'active',
-                    'name' => 'Neon Effect',
-                    'css_text' => 'filter: brightness(1.5) contrast(1.2) drop-shadow(0 0 5px #00ffff) '
-                        . 'drop-shadow(0 0 10px #00ffff);',
-                    'sortorder' => 6,
-                ],
-                [
-                    'type' => 'active',
-                    'name' => 'Warm Glow',
-                    'css_text' => 'filter: sepia(0.3) brightness(1.1) contrast(1.1) saturate(1.2);',
-                    'sortorder' => 7,
-                ],
-                [
-                    'type' => 'active',
-                    'name' => 'Crystal Clear',
-                    'css_text' => 'filter: brightness(1.3) contrast(1.2) saturate(1.5);',
-                    'sortorder' => 8,
-                ],
-
-                // Inactive examples.
-                ['type' => 'inactive', 'name' => 'Sem Efeito', 'css_text' => 'none', 'sortorder' => 0],
-                [
-                    'type' => 'inactive',
-                    'name' => 'Grayed Out',
-                    'css_text' => 'filter: grayscale(100%);',
-                    'sortorder' => 1,
-                ],
-                [
-                    'type' => 'inactive',
-                    'name' => 'Dark Overlay',
-                    'css_text' => 'background: rgba(0,0,0,0.6);',
-                    'sortorder' => 2,
-                ],
-                [
-                    'type' => 'inactive',
-                    'name' => 'Blurred',
-                    'css_text' => 'filter: blur(3px);',
-                    'sortorder' => 3,
-                ],
-                [
-                    'type' => 'inactive',
-                    'name' => 'Desaturated',
-                    'css_text' => 'filter: brightness(0.4) grayscale(0.5);',
-                    'sortorder' => 4,
-                ],
-                [
-                    'type' => 'inactive',
-                    'name' => 'Low Contrast',
-                    'css_text' => 'filter: contrast(0.5) brightness(0.7);',
-                    'sortorder' => 5,
-                ],
-                [
-                    'type' => 'inactive',
-                    'name' => 'Muted Colors',
-                    'css_text' => 'filter: saturate(0.2) brightness(0.8);',
-                    'sortorder' => 6,
-                ],
-                [
-                    'type' => 'inactive',
-                    'name' => 'Foggy',
-                    'css_text' => 'filter: blur(2px) brightness(0.9) contrast(0.8);',
-                    'sortorder' => 7,
-                ],
-                [
-                    'type' => 'inactive',
-                    'name' => 'Shadowed',
-                    'css_text' => 'filter: brightness(0.5) drop-shadow(0 0 5px rgba(0,0,0,0.5));',
-                    'sortorder' => 8,
-                ],
-            ];
-
-            foreach ($examples as $example) {
-                $record = new stdClass();
-                $record->type = $example['type'];
-                $record->name = $example['name'];
-                $record->css_text = $example['css_text'];
-                $record->sortorder = $example['sortorder'];
-                $record->timecreated = time();
-                $record->timemodified = time();
-                $DB->insert_record('imagemap_css_examples', $record);
-            }
+            // The default examples are created by the 2026112700 step.
         }
 
         // Imagemap savepoint reached.
@@ -292,6 +175,34 @@ function xmldb_imagemap_upgrade($oldversion) {
         }
 
         upgrade_mod_savepoint(true, 2026030901, 'imagemap');
+    }
+
+    if ($oldversion < 2026112700) {
+        // Default CSS examples: English names instead of the old Portuguese ones.
+        $renames = [
+            'Sem Efeito' => 'No effect',
+            'Borda Azul' => 'Blue border',
+            'Borda Cinza' => 'Gray border',
+            'Brilho Leve' => 'Soft brightness',
+            'Realce Azul' => 'Blue highlight',
+            'Zoom Suave' => 'Soft zoom',
+            'Contraste Leve' => 'Soft contrast',
+            'Saturacao Leve' => 'Soft saturation',
+            'Halo Verde' => 'Green halo',
+            'Cinza + Escuro' => 'Gray and dark',
+            'Desfoque Leve' => 'Soft blur',
+            'Opacidade Reduzida' => 'Reduced opacity',
+            'Baixo Contraste' => 'Low contrast',
+            'Dessaturado' => 'Desaturated',
+        ];
+        foreach ($renames as $oldname => $newname) {
+            $DB->set_field('imagemap_css_examples', 'name', $newname, ['name' => $oldname]);
+        }
+
+        // Create the defaults of the types that have none; pages no longer create them.
+        \mod_imagemap\local\css_examples::create_defaults();
+
+        upgrade_mod_savepoint(true, 2026112700, 'imagemap');
     }
 
     return true;
