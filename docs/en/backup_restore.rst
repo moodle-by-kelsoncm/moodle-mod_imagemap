@@ -6,7 +6,7 @@ Image maps are included in course backups, imports and in the duplication of act
 * When the whole course is restored, each area points to the copy of its activity or section in the new course, whatever their order in the course.
 * When only the image map is restored or duplicated, areas that point to items of the same course keep them; areas that point to items outside the backup lose their target and must be linked again.
 * The CSS of the areas is cleaned again on restore (see :doc:`configuration`).
-* The CSS examples of the source site travel with the backup and are added to the target site when an example with the same type and name does not exist yet.
+* The CSS examples are site settings: they are not included in backups and a restore never changes them. Each area keeps its own CSS, so a restored image map looks the same without them. To copy the examples to another site, use the export and import of the examples (see :doc:`configuration`).
 
 Privacy
 -------

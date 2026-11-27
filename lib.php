@@ -108,11 +108,7 @@ function imagemap_delete_instance($id) {
     $DB->delete_records('imagemap_area', ['imagemapid' => $imagemap->id]);
 
     // Delete all connection lines.
-    $dbman = $DB->get_manager();
-    $linetable = new xmldb_table('imagemap_line');
-    if ($dbman->table_exists($linetable)) {
-        $DB->delete_records('imagemap_line', ['imagemapid' => $imagemap->id]);
-    }
+    $DB->delete_records('imagemap_line', ['imagemapid' => $imagemap->id]);
 
     // Delete the instance.
     $DB->delete_records('imagemap', ['id' => $imagemap->id]);
@@ -546,16 +542,12 @@ function imagemap_prepare_display_data($imagemap, $course, $context, $cminfo) {
     }
 
     // Load connection lines.
-    $dbman = $DB->get_manager();
-    $linetable = new xmldb_table('imagemap_line');
-    if ($dbman->table_exists($linetable)) {
-        $lines = $DB->get_records('imagemap_line', ['imagemapid' => $imagemap->id]);
-        foreach ($lines as $line) {
-            $linesviewdata[] = [
-                'from_areaid' => (int)$line->from_areaid,
-                'to_areaid' => (int)$line->to_areaid,
-            ];
-        }
+    $lines = $DB->get_records('imagemap_line', ['imagemapid' => $imagemap->id]);
+    foreach ($lines as $line) {
+        $linesviewdata[] = [
+            'from_areaid' => (int)$line->from_areaid,
+            'to_areaid' => (int)$line->to_areaid,
+        ];
     }
 
     return [
