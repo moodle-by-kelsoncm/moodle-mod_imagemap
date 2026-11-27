@@ -433,9 +433,10 @@ final class backup_restore_test extends \restore_date_testcase {
      * Back up and restore a course into a new course.
      *
      * @param int $courseid Source course id.
+     * @param callable|null $beforerestore Called between the backup and the restore.
      * @return int Id of the new course.
      */
-    private function backup_and_restore_course(int $courseid): int {
+    private function backup_and_restore_course(int $courseid, ?callable $beforerestore = null): int {
         global $CFG;
 
         $bc = new \backup_controller(
@@ -455,7 +456,11 @@ final class backup_restore_test extends \restore_date_testcase {
         );
         $bc->destroy();
 
-        $newcourseid = \restore_dbops::create_new_course('Restored', 'R' . $courseid, get_course($courseid)->category);
+        if ($beforerestore) {
+            $beforerestore();
+        }
+
+        $newcourseid =\restore_dbops::create_new_course('Restored', 'R' . $courseid, get_course($courseid)->category);
         $rc = new \restore_controller(
             $backupid,
             $newcourseid,
@@ -531,5 +536,27 @@ final class backup_restore_test extends \restore_date_testcase {
 
         $area = $DB->get_record('imagemap_area', ['imagemapid' => $newcm->instance], '*', MUST_EXIST);
         $this->assertEquals($page->cmid, $area->targetid);
+    }
+
+    /**
+     * Backup and restore leave the site-wide CSS examples alone.
+     */
+    public function test_restore_does_not_write_css_examples(): void {
+        global $DB;
+
+        $course = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->create_module('imagemap', ['course' => $course->id]);
+        $customid = $DB->insert_record('imagemap_css_examples', (object)[
+            'type' => 'active', 'name' => 'Custom preset', 'css_text' => 'opacity: 0.5;', 'sortorder' => 99,
+        ]);
+        $before = null;
+
+        // A preset removed by the administrator after the backup must not come back with the restore.
+        $this->backup_and_restore_course($course->id, function () use ($DB, $customid, &$before): void {
+            $DB->delete_records('imagemap_css_examples', ['id' => $customid]);
+            $before = $DB->get_records('imagemap_css_examples', null, 'id');
+        });
+
+        $this->assertEquals($before, $DB->get_records('imagemap_css_examples', null, 'id'));
     }
 }
