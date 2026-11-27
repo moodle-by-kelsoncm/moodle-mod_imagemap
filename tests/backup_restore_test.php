@@ -460,7 +460,7 @@ final class backup_restore_test extends \restore_date_testcase {
             $beforerestore();
         }
 
-        $newcourseid =\restore_dbops::create_new_course('Restored', 'R' . $courseid, get_course($courseid)->category);
+        $newcourseid = \restore_dbops::create_new_course('Restored', 'R' . $courseid, get_course($courseid)->category);
         $rc = new \restore_controller(
             $backupid,
             $newcourseid,
