@@ -224,30 +224,25 @@ if ($imagefile) {
 
     // Load lines between areas.
     $linesdata = [];
-    if ($dbman = $DB->get_manager()) {
-        $table = new xmldb_table('imagemap_line');
-        if ($dbman->table_exists($table)) {
-            $lines = $DB->get_records('imagemap_line', ['imagemapid' => $imagemap->id]);
-            foreach ($lines as $line) {
-                $linesdata[] = [
-                    'id' => (int)$line->id,
-                    'from_areaid' => (int)$line->from_areaid,
-                    'to_areaid' => (int)$line->to_areaid,
-                ];
-            }
-            // Count lines per area.
-            foreach ($areasfortemplate as &$aft) {
-                $count = 0;
-                foreach ($linesdata as $ld) {
-                    if ($ld['from_areaid'] == $aft['id'] || $ld['to_areaid'] == $aft['id']) {
-                        $count++;
-                    }
-                }
-                $aft['lines_count'] = $count;
-            }
-            unset($aft);
-        }
+    $lines = $DB->get_records('imagemap_line', ['imagemapid' => $imagemap->id]);
+    foreach ($lines as $line) {
+        $linesdata[] = [
+            'id' => (int)$line->id,
+            'from_areaid' => (int)$line->from_areaid,
+            'to_areaid' => (int)$line->to_areaid,
+        ];
     }
+    // Count lines per area.
+    foreach ($areasfortemplate as &$aft) {
+        $count = 0;
+        foreach ($linesdata as $ld) {
+            if ($ld['from_areaid'] == $aft['id'] || $ld['to_areaid'] == $aft['id']) {
+                $count++;
+            }
+        }
+        $aft['lines_count'] = $count;
+    }
+    unset($aft);
 
     // Prepare CSS examples modal.
     $activeexamplesmodal = [];
