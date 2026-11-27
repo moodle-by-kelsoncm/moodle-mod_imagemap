@@ -121,6 +121,28 @@ function imagemap_delete_instance($id) {
 }
 
 /**
+ * Deletes an area of an image map and the connection lines that use it.
+ *
+ * The area must belong to the given image map; otherwise nothing is deleted.
+ *
+ * @param stdClass $imagemap Image map instance record.
+ * @param int $areaid Area id.
+ * @throws dml_missing_record_exception If the area does not belong to the image map.
+ */
+function imagemap_delete_area(stdClass $imagemap, int $areaid): void {
+    global $DB;
+
+    $area = $DB->get_record('imagemap_area', ['id' => $areaid, 'imagemapid' => $imagemap->id], 'id', MUST_EXIST);
+
+    $DB->delete_records_select(
+        'imagemap_line',
+        'imagemapid = :imagemapid AND (from_areaid = :fromareaid OR to_areaid = :toareaid)',
+        ['imagemapid' => $imagemap->id, 'fromareaid' => $area->id, 'toareaid' => $area->id]
+    );
+    $DB->delete_records('imagemap_area', ['id' => $area->id, 'imagemapid' => $imagemap->id]);
+}
+
+/**
  * Returns all other caps used in the module
  *
  * @return array

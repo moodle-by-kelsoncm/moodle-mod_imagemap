@@ -45,17 +45,7 @@ $PAGE->set_context($context);
 
 // Handle actions.
 if ($action === 'delete' && $areaid && confirm_sesskey()) {
-    // Delete related lines first.
-    $dbmancheck = $DB->get_manager();
-    $linetablecheck = new xmldb_table('imagemap_line');
-    if ($dbmancheck->table_exists($linetablecheck)) {
-        $DB->delete_records_select(
-            'imagemap_line',
-            'from_areaid = :from OR to_areaid = :to',
-            ['from' => $areaid, 'to' => $areaid]
-        );
-    }
-    $DB->delete_records('imagemap_area', ['id' => $areaid, 'imagemapid' => $imagemap->id]);
+    imagemap_delete_area($imagemap, $areaid);
     redirect(
         new moodle_url('/mod/imagemap/areas.php', ['id' => $cm->id]),
         get_string('deletearea', 'imagemap'),
